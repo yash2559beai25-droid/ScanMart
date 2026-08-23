@@ -2,7 +2,6 @@
 // Introduces the platform, shows how it works, categories, and a few featured products.
 // Also fetches a random quote from an API to demonstrate: fetch API, async/await, Promises, try/catch.
 
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../components/Button';
 import { products } from '../data/products';
@@ -23,42 +22,8 @@ function HomePage({ addToCart }) {
   // Grab the first 4 products to feature on the homepage
   const featuredProducts = products.slice(0, 4);
 
-  // --- Fetch API + async/await + try/catch demo (Lectures 13–18) ---
-  // State to store the fetched quote
-  const [quote, setQuote] = useState(null);
-  const [quoteLoading, setQuoteLoading] = useState(true);
-  const [quoteError, setQuoteError] = useState('');
 
-  // useEffect runs after the component mounts.
-  // We define an async function inside it to use await with fetch.
-  useEffect(function () {
-    // Async function to fetch a random quote from a public API
-    async function fetchQuote() {
-      try {
-        // fetch() returns a Promise. We use 'await' to wait for the response.
-        const response = await fetch('https://dummyjson.com/quotes/random');
 
-        // Check if the HTTP response was successful
-        if (!response.ok) {
-          throw new Error('Failed to fetch quote');
-        }
-
-        // .json() also returns a Promise, so we await it too
-        const data = await response.json();
-
-        // Update state with the fetched quote
-        setQuote(data);
-        setQuoteLoading(false);
-      } catch (error) {
-        // try/catch handles any errors from the fetch or JSON parsing
-        setQuoteError(error.message);
-        setQuoteLoading(false);
-      }
-    }
-
-    // Call our async function
-    fetchQuote();
-  }, []); // Empty array = run only once when the page loads
 
   return (
     <>
@@ -162,28 +127,8 @@ function HomePage({ addToCart }) {
         </div>
       </section>
 
-      {/* --- Daily Inspiration Section (Fetch API Demo) --- */}
-      {/* This section fetches a random quote from an external API using fetch + async/await */}
-      <section className="container section">
-        <h2 className="section-title">Daily Inspiration</h2>
-        <p className="section-text">A fresh quote every time you visit, fetched from an API.</p>
 
-        <article className="card benefit-card">
-          {/* Show loading state while the fetch Promise is pending */}
-          {quoteLoading && <p className="muted">Loading quote...</p>}
 
-          {/* Show error message if the fetch failed (caught by try/catch) */}
-          {quoteError && <p className="error-text">Could not load quote: {quoteError}</p>}
-
-          {/* Show the quote once fetch resolves successfully */}
-          {quote && (
-            <>
-              <p style={{ fontSize: '1.1rem', fontStyle: 'italic' }}>"{quote.quote}"</p>
-              <p className="muted" style={{ marginTop: '0.5rem' }}>— {quote.author}</p>
-            </>
-          )}
-        </article>
-      </section>
     </>
   );
 }
