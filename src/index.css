@@ -678,6 +678,71 @@ label {
   font-size: 0.92rem;
 }
 
+/* --- FormInput Component styles --- */
+.form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Wrapper allows positioning the show/hide button inside the input */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .text-input {
+  flex: 1;
+  padding-right: 3rem; /* Leave space for the right element */
+}
+
+/* Right-side element inside the input (e.g., show/hide password button) */
+.input-right {
+  position: absolute;
+  right: 0.3rem;
+}
+
+/* Red border when an input has a validation error */
+.input-error {
+  border-color: var(--danger) !important;
+  background: var(--danger-soft);
+}
+
+/* Red asterisk for required fields */
+.required-mark {
+  color: var(--danger);
+  margin-left: 0.1rem;
+}
+
+/* Login form gap between fields */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 0 0.4rem;
+}
+
+/* --- Navbar avatar circle --- */
+.nav-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Dark mode input error */
+.dark .input-error {
+  background: rgba(185, 28, 28, 0.15);
+  border-color: var(--danger) !important;
+}
+
 .success-banner {
   background: var(--ok-soft);
   color: var(--ok);
@@ -1070,4 +1135,3 @@ label {
     padding-top: 1.5rem;
   }
 }
-

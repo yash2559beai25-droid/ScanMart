@@ -1,22 +1,29 @@
-// Cart Page, Checkout Page, and Receipt Page components.
-// These manage reviewing items, placing an order, and viewing the digital receipt.
+// Cart Page, Checkout Page, and Receipt Page
+//
+// CONCEPTS:
+// 1. Context API: using useCart() and useAuth() directly without prop drilling
+// 2. Derived State: calculating total items and total price from cartItems
+// 3. Controlled Form: Checkout fields bound to local useState variables
 
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../components/Button';
 import { formatPrice } from '../data/products';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 // --- Cart Page ---
-// Displays items currently in the cart. Receives cart data as props.
-function CartPage({
-  cartItems,
-  increaseQuantity,
-  decreaseQuantity,
-  removeFromCart,
-  totalItems,
-  totalPrice,
-}) {
-  // If there's nothing in the cart, display an empty state message
+function CartPage() {
+  const {
+    cartItems,
+    totalItems,
+    totalPrice,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart
+  } = useCart();
+
+  // If cart is empty, show empty state message
   if (cartItems.length === 0) {
     return (
       <section className="container section">
@@ -32,14 +39,13 @@ function CartPage({
     );
   }
 
-  // If the cart has items, display them alongside an order summary
   return (
     <section className="container section">
       <h1 className="section-title">Your Cart</h1>
       <p className="section-text">Review items before checkout.</p>
 
       <div className="cart-layout">
-        {/* List of Cart Items */}
+        {/* Cart items list */}
         <div>
           {cartItems.map(function (item) {
             return (
@@ -48,8 +54,8 @@ function CartPage({
                 <div>
                   <h3>{item.name}</h3>
                   <p className="muted">{formatPrice(item.price)} each</p>
-                  
-                  {/* Quantity Controls */}
+
+                  {/* Quantity adjustment buttons */}
                   <div className="qty-box">
                     <button
                       type="button"
@@ -68,9 +74,8 @@ function CartPage({
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
-                  {/* Calculate subtotal for this specific item (price * quantity) */}
                   <p><strong>{formatPrice(item.price * item.quantity)}</strong></p>
                   <Button
                     variant="danger"
@@ -85,7 +90,7 @@ function CartPage({
           })}
         </div>
 
-        {/* Order Summary Sidebar */}
+        {/* Order summary sidebar */}
         <aside className="card summary-card">
           <h2>Order Summary</h2>
           <div className="summary-row">
@@ -108,59 +113,63 @@ function CartPage({
 }
 
 // --- Checkout Page ---
-// A demo checkout form to collect user details and finalize the order.
-export function CheckoutPage({ cartItems, totalItems, totalPrice, clearCart }) {
-  // useNavigate lets us programmatically navigate to different pages (like the receipt page)
+export function CheckoutPage() {
   const navigate = useNavigate();
 
-  // Controlled Inputs: State for every form field
+  // Read cart data from CartContext
+  const { cartItems, totalItems, totalPrice, clearCart } = useCart();
+
+  // Read logged-in user from AuthContext
+  const { user } = useAuth();
+
+  // Controlled form inputs (local state)
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState((user && user.email) ? user.email : '');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
-  
+
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Handle form submission
   function placeOrder(event) {
     event.preventDefault();
 
-    // Basic Validation: Ensure all fields are filled
+    // Basic validation
     if (!fullName || !email || !phone || !address || !city || !pincode) {
       setError('Please fill in all checkout details.');
       return;
     }
 
-    // Generate a mock Order ID
     const randomNumber = Math.floor(1000 + Math.random() * 9000);
-    
-    // Create the final order object
     const order = {
       orderId: 'SM-' + randomNumber,
       date: new Date().toLocaleDateString('en-IN'),
-      customer: { fullName, email, phone, address, city, pincode },
+      customer: {
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        address: address,
+        city: city,
+        pincode: pincode
+      },
       items: cartItems,
-      totalItems,
-      totalPrice,
-      paymentStatus: 'Demo Payment Successful',
+      totalItems: totalItems,
+      totalPrice: totalPrice,
+      paymentStatus: 'Demo Payment Successful'
     };
-
-    // Cart data is now automatically saved to localStorage via the useLocalStorage hook in useCart
 
     setError('');
     setSuccessMessage('Order placed! Your digital receipt is ready.');
-    clearCart();
+    clearCart(); // Clears cart items
 
-    // Navigate to the receipt page after a brief delay, passing order via state
     setTimeout(function () {
-      navigate('/receipt', { state: { order } });
+      navigate('/receipt', { state: { order: order } });
     }, 900);
   }
 
-  // Prevent users from accessing checkout with an empty cart directly
+  // If cart is empty, do not show checkout form
   if (cartItems.length === 0 && !successMessage) {
     return (
       <section className="container section">
@@ -185,13 +194,15 @@ export function CheckoutPage({ cartItems, totalItems, totalPrice, clearCart }) {
       <div className="checkout-layout">
         {/* Checkout Form */}
         <form className="card form" onSubmit={placeOrder}>
-          <label htmlFor="fullName">Full Name</label>
-          <input
-            id="fullName"
-            className="text-input"
-            value={fullName}
-            onChange={function (e) { setFullName(e.target.value); }}
-          />
+          <div>
+            <label htmlFor="fullName">Full Name</label>
+            <input
+              id="fullName"
+              className="text-input"
+              value={fullName}
+              onChange={function (e) { setFullName(e.target.value); }}
+            />
+          </div>
 
           <div className="form-row">
             <div>
@@ -215,13 +226,15 @@ export function CheckoutPage({ cartItems, totalItems, totalPrice, clearCart }) {
             </div>
           </div>
 
-          <label htmlFor="address">Address</label>
-          <input
-            id="address"
-            className="text-input"
-            value={address}
-            onChange={function (e) { setAddress(e.target.value); }}
-          />
+          <div>
+            <label htmlFor="address">Address</label>
+            <input
+              id="address"
+              className="text-input"
+              value={address}
+              onChange={function (e) { setAddress(e.target.value); }}
+            />
+          </div>
 
           <div className="form-row">
             <div>
@@ -250,7 +263,7 @@ export function CheckoutPage({ cartItems, totalItems, totalPrice, clearCart }) {
           <Button variant="secondary" block to="/cart">Back to Cart</Button>
         </form>
 
-        {/* Sidebar Order Summary */}
+        {/* Order Summary Sidebar */}
         <aside className="card summary-card">
           <h2>Order Summary</h2>
           <div className="summary-row">
@@ -272,13 +285,10 @@ export function CheckoutPage({ cartItems, totalItems, totalPrice, clearCart }) {
 }
 
 // --- Receipt Page ---
-// Displays a digital receipt for the last completed order passed via navigation state.
 export function ReceiptPage() {
-  // Read the order from navigation state (passed from CheckoutPage)
   const location = useLocation();
-  const order = location.state?.order || null;
+  const order = (location.state && location.state.order) ? location.state.order : null;
 
-  // A mock array to render a fake QR code graphic
   const qrCells = [
     1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
     1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1
@@ -307,7 +317,6 @@ export function ReceiptPage() {
         <p>Date: {order.date}</p>
         <p>Name: {order.customer.fullName}</p>
 
-        {/* Render a simple table of purchased items */}
         <table className="receipt-table">
           <thead>
             <tr>
@@ -333,17 +342,16 @@ export function ReceiptPage() {
         <p><strong>Total: {formatPrice(order.totalPrice)}</strong></p>
         <p>Payment Status: {order.paymentStatus}</p>
 
-        {/* Fake QR code graphic to simulate a scannable exit ticket */}
         <p style={{ marginTop: '1rem' }}><strong>QR Verification Code</strong></p>
         <div className="qr-box" aria-label="QR placeholder">
           {qrCells.map(function (cell, index) {
             return <span key={index} className={cell ? '' : 'empty'} />;
           })}
         </div>
-        
+
         <p className="muted">Show this receipt at the store exit.</p>
         <p><strong>Thank you for shopping with ScanMart!</strong></p>
-        
+
         <div style={{ marginTop: '1rem' }}>
           <Button to="/home">Back to Home</Button>
         </div>
