@@ -1,63 +1,37 @@
-// Login.jsx — Role Selection and Login Forms
-//
-// CONCEPTS:
-// 1. Local State: useState for form inputs, errors, show/hide password, and current view
-// 2. Form Validation: checking required fields, email format, and password length
-// 3. Global Auth State: useAuth() from AuthContext to store the logged-in user
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import FormInput from './components/FormInput';
 import './Login.css';
 
-// Simple email check: must have '@' and a '.' after it
+// Check email format
 function isValidEmail(email) {
-  if (!email) {
-    return false;
-  }
-  const atPosition = email.indexOf('@');
-  const dotPosition = email.lastIndexOf('.');
+  const at = email.indexOf('@');
+  const dot = email.lastIndexOf('.');
 
-  // @ must not be at the start, and . must come after @
-  if (atPosition > 0 && dotPosition > atPosition + 1 && dotPosition < email.length - 1) {
-    return true;
-  }
-  return false;
+  return at > 0 && dot > at + 1 && dot < email.length - 1;
 }
 
-// ========== MAIN LOGIN COMPONENT ==========
+// Main Login Component
 function Login() {
-  // 'select'    -> Role selection (Customer / Store Owner)
-  // 'customer'  -> Customer login form
-  // 'register'  -> Customer registration form
-  // 'shopOwner' -> Store Owner login form
   const [view, setView] = useState('select');
-
   const navigate = useNavigate();
-  const { login } = useAuth(); // Global login function from AuthContext
+  const { login } = useAuth();
 
-  // Go back to the previous screen
   function handleBack() {
-    if (view === 'register') {
-      setView('customer');
-    } else {
-      setView('select');
-    }
+    setView(view === 'register' ? 'customer' : 'select');
   }
 
   return (
     <section className="login-page">
-      {/* Brand header */}
       <div className="login-brand">
         <h1>ScanMart</h1>
         <p>Your Smart Local Shopping Platform</p>
       </div>
 
-      {/* 1. ROLE SELECTION VIEW */}
+      {/* Role Selection */}
       {view === 'select' && (
         <div className="login-roles">
-          {/* Customer Option Card */}
           <article className="card login-role-card">
             <div className="login-role-icon">🛒</div>
             <h2>Customer</h2>
@@ -67,13 +41,12 @@ function Login() {
             <button
               className="btn btn-primary btn-block"
               type="button"
-              onClick={function () { setView('customer'); }}
+              onClick={() => setView('customer')}
             >
               Continue as Customer
             </button>
           </article>
 
-          {/* Store Owner Option Card */}
           <article className="card login-role-card">
             <div className="login-role-icon">🏪</div>
             <h2>Store Owner</h2>
@@ -83,7 +56,7 @@ function Login() {
             <button
               className="btn btn-primary btn-block"
               type="button"
-              onClick={function () { setView('shopOwner'); }}
+              onClick={() => setView('shopOwner')}
             >
               Continue as Store Owner
             </button>
@@ -91,17 +64,17 @@ function Login() {
         </div>
       )}
 
-      {/* 2. CUSTOMER LOGIN FORM */}
+      {/* Customer Login */}
       {view === 'customer' && (
         <CustomerLoginForm
           onBack={handleBack}
-          onRegister={function () { setView('register'); }}
+          onRegister={() => setView('register')}
           login={login}
           navigate={navigate}
         />
       )}
 
-      {/* 3. CUSTOMER REGISTRATION FORM */}
+      {/* Customer Registration */}
       {view === 'register' && (
         <CustomerRegisterForm
           onBack={handleBack}
@@ -110,7 +83,7 @@ function Login() {
         />
       )}
 
-      {/* 4. STORE OWNER LOGIN FORM */}
+      {/* Store Owner Login */}
       {view === 'shopOwner' && (
         <ShopOwnerLoginForm
           onBack={handleBack}
@@ -122,70 +95,61 @@ function Login() {
   );
 }
 
-
-// ========== CUSTOMER LOGIN FORM ==========
+// Customer Login Form
 function CustomerLoginForm({ onBack, onRegister, login, navigate }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Validate user inputs before logging in
   function validate() {
-    let isValid = true;
+    let valid = true;
 
-    // Email validation
     if (!email.trim()) {
       setEmailError('Email is required.');
-      isValid = false;
+      valid = false;
     } else if (!isValidEmail(email.trim())) {
       setEmailError('Please enter a valid email address.');
-      isValid = false;
+      valid = false;
     } else {
       setEmailError('');
     }
 
-    // Password validation
     if (!password) {
       setPasswordError('Password is required.');
-      isValid = false;
+      valid = false;
     } else if (password.length < 4) {
       setPasswordError('Password must be at least 4 characters.');
-      isValid = false;
+      valid = false;
     } else {
       setPasswordError('');
     }
 
-    return isValid;
+    return valid;
   }
 
   function handleLogin(event) {
     event.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
 
-    // Simulate async login with 600ms timeout
-    setTimeout(function () {
+    setTimeout(() => {
       const name = email.split('@')[0];
-      login(name, email, 'customer'); // Save user to AuthContext
-      navigate('/home');              // Redirect customer to home page
+      login(name, email, 'customer');
+      navigate('/home');
       setIsLoading(false);
     }, 600);
   }
 
-  // Button to show/hide password text
-  const togglePasswordBtn = (
+  const togglePassword = (
     <button
       type="button"
       className="btn btn-ghost btn-sm"
-      onClick={function () { setShowPassword(!showPassword); }}
+      onClick={() => setShowPassword(!showPassword)}
       aria-label="Toggle password visibility"
     >
       {showPassword ? '🙈' : '👁️'}
@@ -197,6 +161,7 @@ function CustomerLoginForm({ onBack, onRegister, login, navigate }) {
       <button className="btn btn-ghost login-back" type="button" onClick={onBack}>
         ← Back
       </button>
+
       <h2>Welcome Back!</h2>
       <p className="muted">Login to your ScanMart account</p>
 
@@ -206,7 +171,7 @@ function CustomerLoginForm({ onBack, onRegister, login, navigate }) {
           label="Email Address"
           type="email"
           value={email}
-          onChange={function (e) { setEmail(e.target.value); }}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           error={emailError}
           required
@@ -217,11 +182,11 @@ function CustomerLoginForm({ onBack, onRegister, login, navigate }) {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           value={password}
-          onChange={function (e) { setPassword(e.target.value); }}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
           error={passwordError}
           required
-          rightElement={togglePasswordBtn}
+          rightElement={togglePassword}
         />
 
         <button
@@ -245,8 +210,7 @@ function CustomerLoginForm({ onBack, onRegister, login, navigate }) {
   );
 }
 
-
-// ========== CUSTOMER REGISTRATION FORM ==========
+// Customer Registration Form
 function CustomerRegisterForm({ onBack, login, navigate }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -261,73 +225,67 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
   const [confirmError, setConfirmError] = useState('');
 
   function validate() {
-    let isValid = true;
+    let valid = true;
 
-    // Full name check
     if (!fullName.trim()) {
       setNameError('Full name is required.');
-      isValid = false;
+      valid = false;
     } else {
       setNameError('');
     }
 
-    // Email check
     if (!email.trim()) {
       setEmailError('Email is required.');
-      isValid = false;
+      valid = false;
     } else if (!isValidEmail(email.trim())) {
       setEmailError('Please enter a valid email address.');
-      isValid = false;
+      valid = false;
     } else {
       setEmailError('');
     }
 
-    // Password check
     if (!password) {
       setPasswordError('Password is required.');
-      isValid = false;
+      valid = false;
     } else if (password.length < 4) {
       setPasswordError('Password must be at least 4 characters.');
-      isValid = false;
+      valid = false;
     } else {
       setPasswordError('');
     }
 
-    // Confirm password match check
     if (!confirmPassword) {
       setConfirmError('Please confirm your password.');
-      isValid = false;
+      valid = false;
     } else if (password !== confirmPassword) {
       setConfirmError('Passwords do not match.');
-      isValid = false;
+      valid = false;
     } else {
       setConfirmError('');
     }
 
-    return isValid;
+    return valid;
   }
 
   function handleRegister(event) {
     event.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
 
-    setTimeout(function () {
+    setTimeout(() => {
       login(fullName.trim(), email, 'customer');
       navigate('/home');
       setIsLoading(false);
     }, 600);
   }
 
-  const togglePasswordBtn = (
+  const togglePassword = (
     <button
       type="button"
       className="btn btn-ghost btn-sm"
-      onClick={function () { setShowPassword(!showPassword); }}
+      onClick={() => setShowPassword(!showPassword)}
       aria-label="Toggle password visibility"
     >
       {showPassword ? '🙈' : '👁️'}
@@ -339,6 +297,7 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
       <button className="btn btn-ghost login-back" type="button" onClick={onBack}>
         ← Back
       </button>
+
       <h2>Create Account</h2>
       <p className="muted">Create a new ScanMart customer account.</p>
 
@@ -348,7 +307,7 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
           label="Full Name"
           type="text"
           value={fullName}
-          onChange={function (e) { setFullName(e.target.value); }}
+          onChange={(e) => setFullName(e.target.value)}
           placeholder="Your full name"
           error={nameError}
           required
@@ -359,7 +318,7 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
           label="Email Address"
           type="email"
           value={email}
-          onChange={function (e) { setEmail(e.target.value); }}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           error={emailError}
           required
@@ -370,11 +329,11 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           value={password}
-          onChange={function (e) { setPassword(e.target.value); }}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Create a password (min 4 characters)"
           error={passwordError}
           required
-          rightElement={togglePasswordBtn}
+          rightElement={togglePassword}
         />
 
         <FormInput
@@ -382,7 +341,7 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
           label="Confirm Password"
           type={showPassword ? 'text' : 'password'}
           value={confirmPassword}
-          onChange={function (e) { setConfirmPassword(e.target.value); }}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Re-enter your password"
           error={confirmError}
           required
@@ -400,65 +359,61 @@ function CustomerRegisterForm({ onBack, login, navigate }) {
   );
 }
 
-
-// ========== STORE OWNER LOGIN FORM ==========
+// Store Owner Login Form
 function ShopOwnerLoginForm({ onBack, login, navigate }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   function validate() {
-    let isValid = true;
+    let valid = true;
 
     if (!email.trim()) {
       setEmailError('Email is required.');
-      isValid = false;
+      valid = false;
     } else if (!isValidEmail(email.trim())) {
       setEmailError('Please enter a valid email address.');
-      isValid = false;
+      valid = false;
     } else {
       setEmailError('');
     }
 
     if (!password) {
       setPasswordError('Password is required.');
-      isValid = false;
+      valid = false;
     } else if (password.length < 4) {
       setPasswordError('Password must be at least 4 characters.');
-      isValid = false;
+      valid = false;
     } else {
       setPasswordError('');
     }
 
-    return isValid;
+    return valid;
   }
 
   function handleOwnerLogin(event) {
     event.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
 
-    setTimeout(function () {
+    setTimeout(() => {
       const name = email.split('@')[0];
-      login(name, email, 'owner'); // Role is 'owner'
-      navigate('/admin');          // Redirect to the Admin Dashboard
+      login(name, email, 'owner');
+      navigate('/admin');
       setIsLoading(false);
     }, 600);
   }
 
-  const togglePasswordBtn = (
+  const togglePassword = (
     <button
       type="button"
       className="btn btn-ghost btn-sm"
-      onClick={function () { setShowPassword(!showPassword); }}
+      onClick={() => setShowPassword(!showPassword)}
       aria-label="Toggle password visibility"
     >
       {showPassword ? '🙈' : '👁️'}
@@ -470,8 +425,11 @@ function ShopOwnerLoginForm({ onBack, login, navigate }) {
       <button className="btn btn-ghost login-back" type="button" onClick={onBack}>
         ← Back
       </button>
+
       <h2>Store Owner Login</h2>
-      <p className="muted">Manage products, monitor inventory, and review store orders.</p>
+      <p className="muted">
+        Manage products, monitor inventory, and review store orders.
+      </p>
 
       <form className="login-form" onSubmit={handleOwnerLogin} noValidate>
         <FormInput
@@ -479,7 +437,7 @@ function ShopOwnerLoginForm({ onBack, login, navigate }) {
           label="Store Owner Email"
           type="email"
           value={email}
-          onChange={function (e) { setEmail(e.target.value); }}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="shop@example.com"
           error={emailError}
           required
@@ -490,11 +448,11 @@ function ShopOwnerLoginForm({ onBack, login, navigate }) {
           label="Password"
           type={showPassword ? 'text' : 'password'}
           value={password}
-          onChange={function (e) { setPassword(e.target.value); }}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter your password"
           error={passwordError}
           required
-          rightElement={togglePasswordBtn}
+          rightElement={togglePassword}
         />
 
         <button
