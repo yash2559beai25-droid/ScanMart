@@ -1,29 +1,70 @@
 // Home Page Component
-// Introduces the platform, shows how it works, categories, and a few featured products.
-// Also fetches a random quote from an API to demonstrate: fetch API, async/await, Promises, try/catch.
+// Introduces the platform, shows how it works, categories, and featured products.
+//
+// CONCEPTS:
+// 1. Context API (useCart): reads addToCart function without prop-drilling
+// 2. Asynchronous State Management:
+//    - isLoading: true while fetching products
+//    - loadError: stores error message if request fails
+//    - featuredProducts: stores the loaded items
+//    - retry button: triggers fetch again if there was an error
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../components/Button';
-import { products } from '../data/products';
+import { products as allProducts } from '../data/products';
 import { ProductCard } from './ProductsPage';
+import { useCart } from '../context/CartContext';
 
-// Data for the "How it works" section
+// Steps for "How ScanMart Works"
 const steps = [
   { number: '1', title: 'Scan', text: 'Scan or enter the product code.' },
   { number: '2', title: 'Add to Cart', text: 'Check the item and add it.' },
   { number: '3', title: 'Pay', text: 'Review the cart and place the order.' },
-  { number: '4', title: 'Show Receipt', text: 'Get a digital receipt instantly.' },
+  { number: '4', title: 'Show Receipt', text: 'Get a digital receipt instantly.' }
 ];
 
-// Categories displayed on the home page for quick filtering
 const homeCategories = ['Electronics', 'Grocery', 'Fashion', 'Home', 'Personal Care'];
 
-function HomePage({ addToCart }) {
-  // Grab the first 4 products to feature on the homepage
-  const featuredProducts = products.slice(0, 4);
+// Simulated async product loader
+// In a real application, this would be: fetch('/api/products')
+function loadFeaturedProducts() {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      // Return first 4 products after 800ms delay
+      resolve(allProducts.slice(0, 4));
+    }, 800);
+  });
+}
 
+function HomePage() {
+  // Global cart function from CartContext
+  const { addToCart } = useCart();
 
+  // Async states
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
+  // Fetch products when page loads
+  useEffect(function () {
+    fetchProducts();
+  }, []);
+
+  // Async function using try/catch/finally
+  async function fetchProducts() {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const data = await loadFeaturedProducts();
+      setFeaturedProducts(data);
+    } catch (error) {
+      setLoadError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <>
@@ -43,7 +84,7 @@ function HomePage({ addToCart }) {
           </div>
         </div>
 
-        {/* Decorative graphic showing the scanning flow */}
+        {/* Scanning graphic */}
         <aside className="card hero-card">
           <div>
             <p className="eyebrow" style={{ color: '#99f6e4' }}>Live shopping flow</p>
@@ -61,7 +102,6 @@ function HomePage({ addToCart }) {
         <h2 className="section-title">How ScanMart Works</h2>
         <p className="section-text">Four simple steps from shelf to receipt.</p>
         <div className="steps">
-          {/* Loop over our steps array to render each step card */}
           {steps.map(function (step) {
             return (
               <article className="card step-card" key={step.number}>
@@ -79,7 +119,6 @@ function HomePage({ addToCart }) {
         <h2 className="section-title">Shop by Category</h2>
         <p className="section-text">Find everyday items faster.</p>
         <div className="categories">
-          {/* Map each category to a link that navigates to the products page with that category selected */}
           {homeCategories.map(function (category) {
             return (
               <Link
@@ -95,17 +134,53 @@ function HomePage({ addToCart }) {
         </div>
       </section>
 
-      {/* --- Featured Products Section --- */}
+      {/* --- Featured Products Section with Async States --- */}
       <section className="container section">
         <h2 className="section-title">Featured Products</h2>
         <p className="section-text">A few popular items from the store.</p>
-        <div className="product-grid">
-          {featuredProducts.map(function (product) {
-            return (
-              <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
-            );
-          })}
-        </div>
+
+        {/* 1. Loading State */}
+        {isLoading && (
+          <div className="async-state card" style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>⏳ Loading products...</p>
+          </div>
+        )}
+
+        {/* 2. Error State */}
+        {loadError && !isLoading && (
+          <div className="async-state card" style={{ textAlign: 'center', padding: '2rem' }}>
+            <p className="error-text">⚠️ {loadError}</p>
+            <button
+              className="btn btn-secondary"
+              style={{ marginTop: '0.8rem' }}
+              onClick={fetchProducts}
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* 3. Empty State */}
+        {!isLoading && !loadError && featuredProducts.length === 0 && (
+          <div className="async-state card" style={{ textAlign: 'center', padding: '2rem' }}>
+            <p className="muted">No products available right now.</p>
+          </div>
+        )}
+
+        {/* 4. Success State */}
+        {!isLoading && !loadError && featuredProducts.length > 0 && (
+          <div className="product-grid">
+            {featuredProducts.map(function (product) {
+              return (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                />
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* --- Why Choose ScanMart Section --- */}
@@ -126,9 +201,6 @@ function HomePage({ addToCart }) {
           </article>
         </div>
       </section>
-
-
-
     </>
   );
 }
