@@ -8,22 +8,23 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../components/Button';
+import { useCartContext } from '../context/CartContext';
 import { formatPrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 // --- Cart Page ---
+// Displays items currently in the cart. Cart data comes from CartContext.
 function CartPage() {
   const {
     cartItems,
-    totalItems,
-    totalPrice,
     increaseQuantity,
     decreaseQuantity,
-    removeFromCart
-  } = useCart();
-
-  // If cart is empty, show empty state message
+    removeFromCart,
+    totalItems,
+    totalPrice,
+  } = useCartContext();
+  // If there's nothing in the cart, display an empty state message
   if (cartItems.length === 0) {
     return (
       <section className="container section">
@@ -113,7 +114,10 @@ function CartPage() {
 }
 
 // --- Checkout Page ---
+// A demo checkout form to collect user details and finalize the order.
 export function CheckoutPage() {
+  const { cartItems, totalItems, totalPrice, clearCart } = useCartContext();
+  // useNavigate lets us programmatically navigate to different pages (like the receipt page)
   const navigate = useNavigate();
 
   // Read cart data from CartContext
