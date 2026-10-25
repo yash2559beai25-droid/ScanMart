@@ -21,6 +21,7 @@ import { mapFakeStoreProduct } from '../utils/mapFakeStoreProduct';
 const PAGE_SIZE = 8;
 
 // --- ProductCard Component ---
+// A reusable component to display a single product's summary.
 export function ProductCard({ product, onAddToCart }) {
   const { showToast } = useToast();
   const [imageFailed, setImageFailed] = useState(false);
