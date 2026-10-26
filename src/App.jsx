@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { ProductProvider } from './context/ProductContext';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -31,58 +32,61 @@ function App() {
   return (
     // AuthProvider — provides user login/logout state to all components
     <AuthProvider>
-      {/* CartProvider — provides cart items and functions to all components */}
-      <CartProvider>
-        <BrowserRouter>
-          <div className={theme === 'dark' ? 'app-shell dark' : 'app-shell'}>
+      {/* ProductProvider — provides centralized live inventory to both owner & customers */}
+      <ProductProvider>
+        {/* CartProvider — provides cart items and functions to all components */}
+        <CartProvider>
+          <BrowserRouter>
+            <div className={theme === 'dark' ? 'app-shell dark' : 'app-shell'}>
 
-            {/* Navbar no longer needs totalItems as a prop — it reads from CartContext directly */}
-            <Navbar theme={theme} toggleTheme={toggleTheme} />
+              {/* Navbar no longer needs totalItems as a prop — it reads from CartContext directly */}
+              <Navbar theme={theme} toggleTheme={toggleTheme} />
 
-            <main className="main-content">
-              <Routes>
-                {/* Root path redirects to Login so users always authenticate first */}
-                <Route path="/" element={<Navigate to="/login" replace />} />
+              <main className="main-content">
+                <Routes>
+                  {/* Root path redirects to Login so users always authenticate first */}
+                  <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* Login page — role selection, customer login, and store owner login */}
-                <Route path="/login" element={<Login />} />
+                  {/* Login page — role selection, customer login, and store owner login */}
+                  <Route path="/login" element={<Login />} />
 
-                {/* Home page */}
-                <Route path="/home" element={<HomePage />} />
+                  {/* Home page */}
+                  <Route path="/home" element={<HomePage />} />
 
-                {/* Products list page */}
-                <Route path="/products" element={<ProductsPage />} />
+                  {/* Products list page */}
+                  <Route path="/products" element={<ProductsPage />} />
 
-                {/* Single product details page — uses a dynamic :id in the URL */}
-                <Route path="/products/:id" element={<ProductDetailsPage />} />
+                  {/* Single product details page — uses a dynamic :id in the URL */}
+                  <Route path="/products/:id" element={<ProductDetailsPage />} />
 
-                {/* Barcode scan page */}
-                <Route path="/scan" element={<ScanPage />} />
+                  {/* Barcode scan page */}
+                  <Route path="/scan" element={<ScanPage />} />
 
-                {/* Shopping cart page */}
-                <Route path="/cart" element={<CartPage />} />
+                  {/* Shopping cart page */}
+                  <Route path="/cart" element={<CartPage />} />
 
-                {/* Checkout page */}
-                <Route path="/checkout" element={<CheckoutPage />} />
+                  {/* Checkout page */}
+                  <Route path="/checkout" element={<CheckoutPage />} />
 
-                {/* Digital receipt page */}
-                <Route path="/receipt" element={<ReceiptPage />} />
+                  {/* Digital receipt page */}
+                  <Route path="/receipt" element={<ReceiptPage />} />
 
-                {/* Customer profile / order history page */}
-                <Route path="/profile" element={<ProfilePage />} />
+                  {/* Customer profile / order history page */}
+                  <Route path="/profile" element={<ProfilePage />} />
 
-                {/* Admin dashboard — for store owners */}
-                <Route path="/admin" element={<AdminPage />} />
+                  {/* Admin dashboard — for store owners */}
+                  <Route path="/admin" element={<AdminPage />} />
 
-                {/* 404 — catches any URL that doesn't match the routes above */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
+                  {/* 404 — catches any URL that doesn't match the routes above */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </main>
 
-            <Footer />
-          </div>
-        </BrowserRouter>
-      </CartProvider>
+              <Footer />
+            </div>
+          </BrowserRouter>
+        </CartProvider>
+      </ProductProvider>
     </AuthProvider>
   );
 }

@@ -43,8 +43,8 @@ function Navbar({ theme, toggleTheme }) {
   return (
     <header className="navbar">
       <div className="container navbar-inner">
-        {/* Logo clicks go to home (or login if not logged in) */}
-        <NavLink to={isLoggedIn ? '/home' : '/login'} onClick={closeMenu}>
+        {/* Logo clicks go to dashboard for owner, home for customer, or login */}
+        <NavLink to={isLoggedIn ? (isOwner ? '/admin' : '/home') : '/login'} onClick={closeMenu}>
           <Logo />
         </NavLink>
 
@@ -84,7 +84,11 @@ function Navbar({ theme, toggleTheme }) {
 
               {/* Store Owner navigation link */}
               {isOwner && (
-                <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink>
+                <>
+                  <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink>
+                  <NavLink to="/products" onClick={closeMenu}>Customer View</NavLink>
+                  <NavLink to="/scan" onClick={closeMenu}>Scan</NavLink>
+                </>
               )}
 
               {/* Profile icon with first initial */}

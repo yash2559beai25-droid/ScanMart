@@ -874,6 +874,168 @@ label {
   color: white;
 }
 
+/* --- Admin Dashboard Extra Styles --- */
+.stock-adjust-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+}
+
+.btn-qty-mini {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.btn-qty-mini:hover {
+  background: var(--teal);
+  color: white;
+  border-color: var(--teal);
+}
+
+.btn-qty-mini.decrease:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1.2rem;
+}
+
+.admin-search-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 0.55rem 0.9rem;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.admin-search-input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.admin-filter-select {
+  padding: 0.55rem 0.9rem;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #1f2937;
+  margin-top: 1.5rem;
+}
+
+.admin-tab {
+  padding: 0.7rem 1.4rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.admin-tab:hover {
+  color: white;
+}
+
+.admin-tab.active {
+  color: var(--teal);
+  border-bottom-color: var(--teal);
+}
+
+.table-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #374151;
+}
+
+.table-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 16px;
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.6rem;
+  color: #e2e8f0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.modal-header h2 {
+  color: white;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: white;
+}
+
+
 /* --- Theme Toggle Button --- */
 .theme-toggle {
   background: none;

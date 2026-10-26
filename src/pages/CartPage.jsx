@@ -8,10 +8,10 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '../components/Button';
-import { useCartContext } from '../context/CartContext';
 import { formatPrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductContext';
 
 // --- Cart Page ---
 // Displays items currently in the cart. Cart data comes from CartContext.
@@ -22,9 +22,9 @@ function CartPage() {
     decreaseQuantity,
     removeFromCart,
     totalItems,
-    totalPrice,
-  } = useCartContext();
-  // If there's nothing in the cart, display an empty state message
+    totalPrice
+  } = useCart();
+  const { getProductById } = useProducts();
   if (cartItems.length === 0) {
     return (
       <section className="container section">
@@ -40,21 +40,53 @@ function CartPage() {
     );
   }
 
+  // Check if any cart item exceeds available stock
+  let hasStockIssue = false;
+  for (let i = 0; i < cartItems.length; i++) {
+    const prod = getProductById(cartItems[i].id);
+    if (prod && prod.stock < cartItems[i].quantity) {
+      hasStockIssue = true;
+      break;
+    }
+  }
+
   return (
     <section className="container section">
       <h1 className="section-title">Your Cart</h1>
       <p className="section-text">Review items before checkout.</p>
 
+      {hasStockIssue && (
+        <div className="error-text card" style={{ padding: '0.8rem 1.2rem', marginBottom: '1.2rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444' }}>
+          ⚠️ Some items in your cart exceed available store inventory. Please adjust quantities to proceed.
+        </div>
+      )}
+
       <div className="cart-layout">
         {/* Cart items list */}
         <div>
           {cartItems.map(function (item) {
+            const liveProduct = getProductById(item.id);
+            const availableStock = liveProduct !== null && liveProduct !== undefined ? liveProduct.stock : 999;
+            const isMaxReached = item.quantity >= availableStock;
+            const isOutOfStock = availableStock <= 0;
+
             return (
               <article className="card cart-item" key={item.id}>
                 <img src={item.image} alt={item.name} />
                 <div>
                   <h3>{item.name}</h3>
                   <p className="muted">{formatPrice(item.price)} each</p>
+
+                  {/* Stock notice */}
+                  {isOutOfStock ? (
+                    <span className="badge badge-out" style={{ marginBottom: '0.4rem', display: 'inline-block' }}>
+                      Currently Out of Stock
+                    </span>
+                  ) : item.quantity > availableStock ? (
+                    <span className="badge badge-low" style={{ marginBottom: '0.4rem', display: 'inline-block' }}>
+                      Only {availableStock} available!
+                    </span>
+                  ) : null}
 
                   {/* Quantity adjustment buttons */}
                   <div className="qty-box">
@@ -68,8 +100,11 @@ function CartPage() {
                     <span>{item.quantity}</span>
                     <button
                       type="button"
+                      disabled={isMaxReached}
                       onClick={function () { increaseQuantity(item.id); }}
                       aria-label="Increase quantity"
+                      title={isMaxReached ? `Only ${availableStock} available in store` : 'Increase quantity'}
+                      style={{ opacity: isMaxReached ? 0.4 : 1, cursor: isMaxReached ? 'not-allowed' : 'pointer' }}
                     >
                       +
                     </button>
@@ -106,7 +141,9 @@ function CartPage() {
             <strong>Total</strong>
             <strong>{formatPrice(totalPrice)}</strong>
           </div>
-          <Button block to="/checkout">Proceed to Checkout</Button>
+          <Button block to="/checkout" disabled={hasStockIssue}>
+            {hasStockIssue ? 'Fix Quantities to Checkout' : 'Proceed to Checkout'}
+          </Button>
         </aside>
       </div>
     </section>
@@ -116,12 +153,14 @@ function CartPage() {
 // --- Checkout Page ---
 // A demo checkout form to collect user details and finalize the order.
 export function CheckoutPage() {
-  const { cartItems, totalItems, totalPrice, clearCart } = useCartContext();
   // useNavigate lets us programmatically navigate to different pages (like the receipt page)
   const navigate = useNavigate();
 
   // Read cart data from CartContext
   const { cartItems, totalItems, totalPrice, clearCart } = useCart();
+
+  // Read inventory manager from ProductContext
+  const { reduceStockForOrder, getProductById } = useProducts();
 
   // Read logged-in user from AuthContext
   const { user } = useAuth();
@@ -146,6 +185,15 @@ export function CheckoutPage() {
       return;
     }
 
+    // Check if any product exceeds available inventory
+    for (let i = 0; i < cartItems.length; i++) {
+      const prod = getProductById(cartItems[i].id);
+      if (prod && prod.stock < cartItems[i].quantity) {
+        setError(`"${cartItems[i].name}" only has ${prod.stock} items available in stock. Please adjust your cart.`);
+        return;
+      }
+    }
+
     const randomNumber = Math.floor(1000 + Math.random() * 9000);
     const order = {
       orderId: 'SM-' + randomNumber,
@@ -163,6 +211,19 @@ export function CheckoutPage() {
       totalPrice: totalPrice,
       paymentStatus: 'Demo Payment Successful'
     };
+
+    // Deduct stock from the live store inventory
+    reduceStockForOrder(cartItems);
+
+    // Save order to localStorage for Profile and Store Owner dashboard
+    try {
+      const existing = localStorage.getItem('scanmart_orders');
+      const ordersList = existing ? JSON.parse(existing) : [];
+      ordersList.unshift(order);
+      localStorage.setItem('scanmart_orders', JSON.stringify(ordersList));
+    } catch (e) {
+      console.error('Failed to save order to localStorage', e);
+    }
 
     setError('');
     setSuccessMessage('Order placed! Your digital receipt is ready.');

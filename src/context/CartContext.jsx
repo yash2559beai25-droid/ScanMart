@@ -3,14 +3,14 @@
 // This file only provides that data so pages do not need cart props.
 
 import { createContext, useContext } from 'react';
-import { useCart } from '../hooks/useCart';
+import { useCart as useCartHook } from '../hooks/useCart';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   // Call the existing cart hook once here.
   // Every page can then read this same cart instead of receiving props.
-  const cart = useCart();
+  const cart = useCartHook();
 
   return (
     <CartContext.Provider value={cart}>
@@ -28,3 +28,6 @@ export function useCartContext() {
 
   return cart;
 }
+
+// Backward-compatible alias so components can use either useCart or useCartContext
+export const useCart = useCartContext;
